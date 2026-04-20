@@ -8,6 +8,13 @@ Sistema para consulta de preços de produtos de supermercados via WhatsApp, com 
 - Comercial: PriceHub Ads
 
 ---
+O que falta fazer:
+- [ ] Criar fluxo n8n com WhatsApp para receber e enviar as mensagens
+- [ ] Autenticação completa (login/register/token)
+- [ ] Multi-tenant (você comentou disso antes 👀)
+- [ ] rate limiting + segurança 
+- [ ] Docker pronto pra produção
+---
 
 ## 🚀 Objetivo do Projeto
 
