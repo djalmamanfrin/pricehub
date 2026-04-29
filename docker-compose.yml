@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/php/Dockerfile
+    container_name: pricehub_backend
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - pricehub
+
+  frontend:
+    image: node:22
+    container_name: pricehub_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
+    networks:
+      - pricehub
+
+  nginx:
+    image: nginx:alpine
+    container_name: pricehub_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - backend
+    networks:
+      - pricehub
+
+  postgres:
+    image: postgres:15
+    container_name: pricehub_postgres
+    environment:
+      POSTGRES_DB: pricehub
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pricehub
+
+networks:
+  pricehub:
+
+volumes:
+  pgdata:
