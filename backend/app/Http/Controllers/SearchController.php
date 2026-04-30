@@ -24,7 +24,7 @@ class SearchController extends Controller
         }
 
         return ApiResponse::success(
-           Arr::get($data, 'text'),
+           'Resultados',
             $data
         );
     }
