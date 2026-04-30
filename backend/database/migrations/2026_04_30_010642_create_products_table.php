@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('normalized_name')->index();
             $table->string('barcode')->nullable()->unique();
+            $table->json('embedding')->nullable();
             $table->timestamps();
         });
     }
