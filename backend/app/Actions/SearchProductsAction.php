@@ -2,44 +2,41 @@
 
 namespace App\Actions;
 
+use App\Models\Product;
+
 class SearchProductsAction
 {
     public function __invoke(string $query): array
     {
-        $results = $this->mockSearch($query);
+        $products = $this->searchInDatabase($query);
+
+        $results = $products->map(function ($product) {
+            return [
+                'name' => $product->name,
+                'offers' => $product->offers->map(function ($offer) {
+                    return [
+                        'market' => $offer->market->name,
+                        'price' => $offer->price,
+                    ];
+                })->sortBy('price')->values()->toArray()
+            ];
+        })->toArray();
 
         return [
             'query' => $query,
-            'results' => array_values($results), // normaliza índice
+            'results' => $results,
             'text' => $this->formatForWhatsApp($results),
         ];
     }
 
-    private function mockSearch(string $query): array
+    private function searchInDatabase(string $query)
     {
-        $products = [
-            [
-                'name' => 'Coca-Cola 2L',
-                'offers' => [
-                    ['market' => 'Condor', 'price' => 9.49],
-                    ['market' => 'Muffato', 'price' => 8.99],
-                ]
-            ],
-            [
-                'name' => 'Coca-Cola 600ml',
-                'offers' => [
-                    ['market' => 'Condor', 'price' => 4.99],
-                    ['market' => 'Muffato', 'price' => 4.79],
-                ]
-            ]
-        ];
+        $normalized = $this->normalize($query);
 
-        return array_filter($products, function ($product) use ($query) {
-            return str_contains(
-                strtolower($product['name']),
-                strtolower($query)
-            );
-        });
+        return Product::with(['offers.market'])
+            ->where('normalized_name', 'like', "%{$normalized}%")
+            ->limit(5)
+            ->get();
     }
 
     private function formatForWhatsApp(array $results): string
@@ -57,5 +54,10 @@ class SearchProductsAction
         }
 
         return trim($text);
+    }
+
+    private function normalize(string $text): string
+    {
+        return strtolower(trim($text));
     }
 }
