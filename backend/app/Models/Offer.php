@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Offer extends Model
 {
-    protected $fillable = ['product_id', 'market_id', 'price', 'collected_at'];
+    protected $fillable = ['product_id', 'market_id', 'match_score', 'price', 'collected_at'];
 
     public function product()
     {
