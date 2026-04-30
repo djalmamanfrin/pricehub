@@ -34,6 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
+
+            // só intercepta API
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
             $status = method_exists($e, 'getStatusCode')
                 ? $e->getStatusCode()
                 : Response::HTTP_INTERNAL_SERVER_ERROR;
