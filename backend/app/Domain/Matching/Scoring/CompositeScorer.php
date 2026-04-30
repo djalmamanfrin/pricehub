@@ -4,19 +4,28 @@ namespace App\Domain\Matching\Scoring;
 
 use App\Domain\Matching\DTO\FeatureVector;
 
-class CompositeScorer
+readonly class CompositeScorer
 {
     public function __construct(
         private array $scorers
     ) {}
 
-    public function score(FeatureVector $features): float
+    public function score(FeatureVector $features): array
     {
         $total = 0;
+        $breakdown = [];
         foreach ($this->scorers as $scorer) {
-            $total += $scorer->score($features);
+            $result = $scorer->score($features);
+            $total += $result['score'];
+            $breakdown[] = [
+                'rule' => $result['rule'],
+                'score' => $result['score'],
+            ];
         }
 
-        return $total;
+        return [
+            'score' => $total,
+            'breakdown' => $breakdown
+        ];
     }
 }
