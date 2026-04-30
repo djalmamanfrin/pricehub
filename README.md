@@ -53,6 +53,21 @@ Coca-Cola 2L:
 - Condor: R$ 9,49
 ```
 
+#### Arquitetura parser final
+```
+   ParsedInput
+   ↓
+   FeatureExtractor (sensor layer)
+   ↓
+   FeatureVector (dados puros)
+   ↓
+   Scorers (regras independentes)
+   ↓
+   Aggregator (score + breakdown)
+   ↓
+   MatchResult
+```
+
 ### 🤖 Fluxo M2M
 Estados possíveis
 - INITIAL
