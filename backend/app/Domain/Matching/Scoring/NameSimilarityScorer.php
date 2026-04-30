@@ -6,8 +6,14 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 class NameSimilarityScorer implements ScorerInterface
 {
-    public function score(FeatureVector $features): float
+    const SIMILARITY = 'name_similarity';
+    public function score(FeatureVector $features): array
     {
-        return ($features->get('name_similarity') ?? 0) * 0.4;
+        // penalização forte
+        $score = ($features->get(self::SIMILARITY) ?? 0) * 0.4;
+        return [
+            'score' => $score,
+            'rule' => self::SIMILARITY
+        ];
     }
 }

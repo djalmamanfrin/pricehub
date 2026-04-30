@@ -6,16 +6,20 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 class VolumeScorer implements ScorerInterface
 {
-    public function score(FeatureVector $features): float
+    const string MATCH = 'volume_match';
+    const string MISMATCH = 'volume_mismatch';
+    public function score(FeatureVector $features): array
     {
-        if ($features->get('volume_match')) {
-            return 40;
+        if ($features->get(self::MATCH)) {
+            return [
+                'score' => 40,
+                'rule' => self::MATCH,
+            ];
         }
 
-        if ($features->get('volume_diff') > 0) {
-            return -60;
-        }
-
-        return 0;
+        return [
+            'score' => -30,
+            'rule' => self::MISMATCH,
+        ];
     }
 }

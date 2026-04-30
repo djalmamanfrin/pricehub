@@ -6,8 +6,19 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 class TokenScorer implements ScorerInterface
 {
-    public function score(FeatureVector $features): float
+    const string OVERLAP = 'token_overlap';
+    const string TOTAL = 'token_total';
+    public function score(FeatureVector $features): array
     {
-        return ($features->get('token_overlap') ?? 0) * 5;
+        $overlap = $features->get(self::OVERLAP) ?? 0;
+        $total = max($features->get(self::TOTAL) ?? 1, 1);
+
+        $ratio = $overlap / $total;
+        $score = $ratio * 20;
+
+        return [
+            'score' => $score,
+            'rule' => 'token_ratio',
+        ];
     }
 }

@@ -6,9 +6,14 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 class BrandScorer implements ScorerInterface
 {
-    public function score(FeatureVector $features): float
+    const MATCH = 'brand_match';
+    public function score(FeatureVector $features): array
     {
         // penalização forte
-        return $features->get('brand_match') ? 30 : -80;
+        $score = $features->get(self::MATCH) ? 30 : -80;
+        return [
+            'score' => $score,
+            'rule' => self::MATCH
+        ];
     }
 }

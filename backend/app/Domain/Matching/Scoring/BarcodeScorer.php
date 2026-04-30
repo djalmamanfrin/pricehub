@@ -6,8 +6,13 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 class BarcodeScorer implements ScorerInterface
 {
-    public function score(FeatureVector $features): float
+    const MATCH = 'barcode_match';
+    public function score(FeatureVector $features): array
     {
-        return $features->get('barcode_match') ? 100 : 0;
+        $score = $features->get(self::MATCH) ? 100 : 0;
+        return [
+            'score' => $score,
+            'rule' => self::MATCH
+        ];
     }
 }
