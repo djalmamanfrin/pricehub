@@ -27,7 +27,8 @@ readonly class CreateOfferAction
             ],
             [
                 'price' => $data['price'],
-                'match_score' => $result->score,
+                'score' => $result->score,
+                'breakdown' => $result->breakdown,
                 'collected_at' => now()
             ]
         );
