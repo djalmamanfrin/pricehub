@@ -38,16 +38,15 @@ class ProductMatchingEngine
         // 1. Barcode match (hard match)
         if ($parsed->barcode) {
             $existing = Product::where('barcode', $parsed->barcode)->first();
-
             if ($existing) {
-                return new ProductMatchResult($existing, 100, false);
+                return ProductMatchResult::make($existing->id, 100, $existing->breakdown);
             }
         }
 
         // 2. Nome exato
         $existing = Product::where('normalized_name', $parsed->normalized)->first();
         if ($existing) {
-            return new ProductMatchResult($existing, 90, false);
+            return ProductMatchResult::make($existing->id, 100, $existing->breakdown);
         }
 
         // 3. Matching com score
@@ -77,7 +76,6 @@ class ProductMatchingEngine
             'name' => $parsed->original,
             'normalized_name' => $parsed->normalized,
             'barcode' => $parsed->barcode,
-
             'brand_id' => $parsed->brandId,
             'category_id' => $parsed->categoryId,
             'unit_type_id' => $parsed->unitTypeId,

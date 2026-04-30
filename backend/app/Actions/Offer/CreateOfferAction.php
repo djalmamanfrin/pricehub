@@ -22,7 +22,7 @@ readonly class CreateOfferAction
 
         return Offer::updateOrCreate(
             [
-                'product_id' => $result->product->id,
+                'product_id' => $result->productId,
                 'market_id' => $market->id,
             ],
             [
