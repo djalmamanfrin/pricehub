@@ -2,6 +2,7 @@
 
 namespace App\Actions\Product;
 
+use App\Domain\Product\ProductMatchResult;
 use App\Models\Product;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -10,7 +11,7 @@ use InvalidArgumentException;
 
 class ProductMatchingEngine
 {
-    public function match(array $data): ?Product
+    public function match(array $data): ProductMatchResult
     {
         $productName = Arr::get($data, 'product_name')
             ?? throw new InvalidArgumentException('Product name must be provided');
@@ -30,15 +31,17 @@ class ProductMatchingEngine
             }
         }
 
-        if ($bestScore >= 80) {
-            return $best;
+        if ($best && $bestScore >= 80) {
+            return new ProductMatchResult($best, $bestScore, false);
         }
 
-        return Product::create([
+        $product = Product::create([
             'name' => $data['product_name'],
             'normalized_name' => $normalizedName,
             'barcode' => $data['barcode'] ?? null
         ]);
+
+        return new ProductMatchResult($product, 0, true);
     }
 
     private function calculateScore(array $data, Product $product): int

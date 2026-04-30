@@ -6,15 +6,15 @@ use App\Actions\Product\ProductMatchingEngine;
 use App\Models\Market;
 use App\Models\Offer;
 
-class CreateOfferAction
+readonly class CreateOfferAction
 {
     public function __construct(
-        private readonly ProductMatchingEngine $engine
+        private ProductMatchingEngine $engine
     ) {}
 
     public function __invoke(array $data): Offer
     {
-        $product = $this->engine->match($data);
+        $result = $this->engine->match($data);
 
         $market = Market::firstOrCreate([
             'name' => $this->normalize($data['market_name'])
@@ -22,11 +22,12 @@ class CreateOfferAction
 
         return Offer::updateOrCreate(
             [
-                'product_id' => $product->id,
+                'product_id' => $result->product->id,
                 'market_id' => $market->id,
             ],
             [
                 'price' => $data['price'],
+                'match_score' => $result->score,
                 'collected_at' => now()
             ]
         );
