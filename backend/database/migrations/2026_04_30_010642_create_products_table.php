@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('barcode')->nullable()->unique();
             $table->json('embedding')->nullable();
             $table->timestamps();
+
+            $table->unique(['brand_id', 'category_id', 'unit_type_id', 'normalized_name']);
         });
     }
 
