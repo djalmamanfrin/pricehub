@@ -48,7 +48,7 @@ class ProductMatchingEngine
 
     private function applySynonyms(string $text): string
     {
-        $synonyms = config('synonyms');
+        $synonyms = $this->getSynonyms();
 
         $tokens = explode(' ', $text);
 
