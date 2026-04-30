@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    user: "${UID}:${GID}"
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
