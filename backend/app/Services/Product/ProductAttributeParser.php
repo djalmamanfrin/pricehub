@@ -70,6 +70,9 @@ class ProductAttributeParser
 
         foreach ($synonyms as $term => $synonym) {
             $normalized = $synonym['normalized'];
+            if (str_contains($text, $normalized)) {
+                continue;
+            }
 
             // replace seguro (evita substituir dentro de palavras)
             $text = preg_replace(
