@@ -3,7 +3,6 @@
 namespace App\Helpers;
 
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 class ApiResponse
 {
@@ -15,7 +14,7 @@ class ApiResponse
         ]);
     }
 
-    public static function error(string $message, Response $code): JsonResponse
+    public static function error(string $message, int $code): JsonResponse
     {
         return response()->json([
             'message' => $message
