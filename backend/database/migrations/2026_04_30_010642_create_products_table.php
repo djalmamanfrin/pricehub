@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('normalized_name')->index();
-            $table->string('barcode')->nullable()->index();
+            $table->string('barcode')->nullable()->unique();
             $table->timestamps();
         });
     }
