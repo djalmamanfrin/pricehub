@@ -13,7 +13,8 @@ return new class extends Migration
 
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('market_id')->constrained()->cascadeOnDelete();
-            $table->integer('match_score')->nullable();
+            $table->integer('score');
+            $table->json('breakdown')->nullable();
 
             $table->decimal('price', 10, 2);
             $table->timestamp('collected_at')->nullable();

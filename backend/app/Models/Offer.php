@@ -6,7 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Offer extends Model
 {
-    protected $fillable = ['product_id', 'market_id', 'match_score', 'price', 'collected_at'];
+    protected $fillable = [
+        'product_id',
+        'market_id',
+        'score',
+        'price',
+        'breakdown',
+        'collected_at'
+    ];
+
+    protected $casts = [
+        'breakdown' => 'array'
+    ];
 
     public function product()
     {
