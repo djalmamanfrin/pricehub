@@ -28,7 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
-
+            // somente prod
+            if (!app()->environment('production')) {
+                return null;
+            }
             // só intercepta API
             if (! $request->is('api/*')) {
                 return null;
