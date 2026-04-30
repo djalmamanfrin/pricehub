@@ -2,9 +2,13 @@
 
 namespace App\Actions\Product;
 
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Domain\Matching\FeatureExtractor;
+use App\Domain\Matching\Scoring\CompositeScorer;
 use App\Domain\Product\ProductMatchResult;
 use App\Models\Product;
 use App\Models\Synonym;
+use App\Services\Product\ProductAttributeParser;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -13,129 +17,75 @@ use InvalidArgumentException;
 
 class ProductMatchingEngine
 {
-    public function match(array $data): ProductMatchResult
-    {
-        $productName = Arr::get($data, 'product_name')
-            ?? throw new InvalidArgumentException('Product name must be provided');
+    public function __construct(
+        private FeatureExtractor $extractor,
+        private CompositeScorer $scorer,
+        private ProductAttributeParser $parser
+    ) {}
 
-        $normalizedName = $this->normalize($productName);
-        $candidates = $this->findSimilar($normalizedName);
+    public function match(array $data): Product
+    {
+        $parsed = new ParsedInput(
+            original: $data['product_name'],
+            normalized: $this->parser->normalize($data['product_name']),
+            brandId: $this->parser->extractBrandId($data['product_name']),
+            categoryId: $this->parser->extractCategoryId($data['product_name']),
+            unitTypeId: $this->parser->extractUnitTypeId($data['product_name']),
+            volumeMl: $this->parser->extractVolumeMl($data['product_name']),
+            barcode: $data['barcode'] ?? null
+        );
+
+        // 1. Barcode match (hard match)
+        if ($parsed->barcode) {
+            $existing = Product::where('barcode', $parsed->barcode)->first();
+
+            if ($existing) {
+                $existing->match_score = 100;
+                return $existing;
+            }
+        }
+
+        // 2. Nome exato
+        $existing = Product::where('normalized_name', $parsed->normalized)->first();
+
+        if ($existing) {
+            $existing->match_score = 90;
+            return $existing;
+        }
+
+        // 3. Matching com score
+        $candidates = $this->findCandidates($parsed->normalized);
 
         $best = null;
-        $bestScore = 0;
+        $bestScore = -INF;
 
-        foreach ($candidates as $candidate) {
-            $score = $this->calculateScore($data, $candidate);
+        foreach ($candidates as $product) {
+            $features = $this->extractor->extract($parsed, $product);
+            $score = $this->scorer->score($features);
 
             if ($score > $bestScore) {
                 $bestScore = $score;
-                $best = $candidate;
+                $best = $product;
+                $best->match_score = $score;
             }
         }
 
-        if ($best && $best->brand_id === $data['brand_id'] && $bestScore >= 80) {
-            return new ProductMatchResult($best, $bestScore, false);
+        if ($bestScore >= 80) {
+            return $best;
         }
 
-        $product = Product::create([
-            'name' => $data['product_name'],
-            'brand_id' => $data['brand_id'],
-            'normalized_name' => $normalizedName,
-            'barcode' => $data['barcode'] ?? null
+        return Product::create([
+            'name' => $parsed->original,
+            'normalized_name' => $parsed->normalized,
+            'barcode' => $parsed->barcode,
+
+            'brand_id' => $parsed->brandId,
+            'category_id' => $parsed->categoryId,
+            'unit_type_id' => $parsed->unitTypeId,
         ]);
-
-        return new ProductMatchResult($product, 0, true);
     }
 
-    private function applySynonyms(string $text): string
-    {
-        $synonyms = $this->getSynonyms();
-
-        $tokens = explode(' ', $text);
-
-        $normalizedTokens = array_map(function ($token) use ($synonyms) {
-            return $synonyms[$token] ?? $token;
-        }, $tokens);
-
-        return implode(' ', $normalizedTokens);
-    }
-
-    private function calculateScore(array $data, Product $product): int
-    {
-        $score = 0;
-
-        // 1. Barcode
-        if (!empty($data['barcode']) && $product->barcode === $data['barcode']) {
-            $score += 100;
-        }
-
-        // 2. Nome (similaridade)
-        $input = $this->normalize($data['product_name']);
-        $target = $product->normalized_name;
-
-        similar_text($input, $target, $percent);
-        $score += ($percent * 0.4); // até 40 pontos
-
-        // 3. Volume
-        $inputVol = $this->extractVolume($data['product_name']);
-        $targetVol = $this->extractVolume($product->name);
-
-        if ($inputVol && $targetVol) {
-            if ($inputVol === $targetVol) {
-                $score += 40;
-            } else {
-                $score -= 40; // penalização forte
-            }
-        }
-
-        // 4. Tokens (palavras em comum)
-        $score += $this->tokenScore($input, $target);
-
-        return (int) $score;
-    }
-
-    private function extractVolume(string $text): ?string
-    {
-        if (preg_match('/(\d+)\s?(ml|l)/i', $text, $matches)) {
-            return strtolower($matches[1] . $matches[2]);
-        }
-
-        return null;
-    }
-
-    private function tokenScore(string $a, string $b): int
-    {
-        $tokensA = explode(' ', $a);
-        $tokensB = explode(' ', $b);
-        $synonyms = $this->getSynonyms();
-
-        $score = 0;
-
-        foreach ($tokensA as $token) {
-            if (in_array($token, $tokensB)) {
-                $weight = $synonyms[$token]['weight'] ?? 1;
-                $score += 5 * $weight;
-            }
-        }
-
-        return $score;
-    }
-
-    private function normalize(string $text): string
-    {
-        $normalized = Str::of($text)
-            ->lower()
-            ->ascii()
-            ->replace(['-', '_', '/', ','], ' ')
-            ->replaceMatches('/[^a-z0-9\s]/', '')
-            ->replaceMatches('/\s+/', ' ')
-            ->trim()
-            ->toString();
-
-        return $this->applySynonyms($normalized);
-    }
-
-    private function findSimilar(string $normalizedName): Collection
+    private function findCandidates(string $normalizedName): Collection
     {
         $query = Product::query();
         $tokens = explode(' ', $normalizedName);
@@ -143,15 +93,5 @@ class ProductMatchingEngine
             $query->orWhere('normalized_name', 'like', "%{$token}%");
         }
         return $query->limit(50)->get();
-    }
-
-    private function getSynonyms(): array
-    {
-        return Cache::remember('synonyms', now()->addHours(6), function () {
-            return Synonym::all()
-                ->groupBy('term')
-                ->map(fn ($items) => $items->first())
-                ->toArray();
-        });
     }
 }
