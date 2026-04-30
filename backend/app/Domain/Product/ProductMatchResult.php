@@ -2,19 +2,25 @@
 
 namespace App\Domain\Product;
 
-use App\Models\Product;
-
 readonly class ProductMatchResult
 {
     public function __construct(
-        public Product $product,
+        public ?int $productId,
         public int $score,
-        public bool $isNew
-    ) {
-        logger()->info('ProductMatchResult', [
-            'product' => $this->product,
-            'score' => $score,
-            'is_new' => $this->isNew,
-        ]);
+        public array $breakdown
+    ) {}
+
+    public static function make(?int $productId, int $score, array $breakdown): self
+    {
+        return new self($productId, $score, $breakdown);
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'product_id' => $this->productId,
+            'score' => $this->score,
+            'breakdown' => $this->breakdown,
+        ];
     }
 }

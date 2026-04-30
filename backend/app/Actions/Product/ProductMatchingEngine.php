@@ -54,20 +54,23 @@ class ProductMatchingEngine
         $candidates = $this->findCandidates($parsed->normalized);
 
         $best = null;
-        $bestScore = -INF;
+        $bestScore = 0;
+        $bestBreakdown = [];
 
         foreach ($candidates as $product) {
             $features = $this->extractor->extract($parsed, $product);
-            $score = $this->scorer->score($features);
+            $result = $this->scorer->score($features);
+            $score = $result['score'];
 
             if ($score > $bestScore) {
-                $bestScore = $score;
                 $best = $product;
+                $bestScore = $score;
+                $bestBreakdown = $result['breakdown'];
             }
         }
 
         if ($bestScore >= 80) {
-            return new ProductMatchResult($best, $bestScore, false);
+            return ProductMatchResult::make($best, $bestScore, $bestBreakdown);
         }
 
         $product = Product::create([
@@ -80,7 +83,7 @@ class ProductMatchingEngine
             'unit_type_id' => $parsed->unitTypeId,
         ]);
 
-        return new ProductMatchResult($product, 0, true);
+        return ProductMatchResult::make($product, 0, $bestBreakdown);
     }
 
     private function findCandidates(string $normalizedName): Collection
