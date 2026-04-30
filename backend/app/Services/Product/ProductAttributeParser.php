@@ -63,14 +63,23 @@ class ProductAttributeParser
 
     private function applySynonyms(string $text): string
     {
-        $tokens = explode(' ', $text);
         $synonyms = $this->getSynonyms();
 
-        $normalizedTokens = array_map(function ($token) use ($synonyms) {
-            return $synonyms[$token]['normalized'] ?? $token;
-        }, $tokens);
+        // ordenar por tamanho do termo (maiores primeiro)
+        uksort($synonyms, fn ($a, $b) => strlen($b) <=> strlen($a));
 
-        return implode(' ', $normalizedTokens);
+        foreach ($synonyms as $term => $synonym) {
+            $normalized = $synonym['normalized'];
+
+            // replace seguro (evita substituir dentro de palavras)
+            $text = preg_replace(
+                '/\b' . preg_quote($term, '/') . '\b/',
+                $normalized,
+                $text
+            );
+        }
+
+        return $text;
     }
 
     private function getSynonyms(): array
