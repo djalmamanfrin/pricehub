@@ -14,12 +14,7 @@ class Product extends Model
         'unit_type_id',
         'name',
         'normalized_name',
-        'breakdown',
         'barcode'
-    ];
-
-    protected $casts = [
-        'breakdown' => 'array'
     ];
 
     public function offers(): HasMany
