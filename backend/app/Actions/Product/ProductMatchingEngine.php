@@ -44,6 +44,19 @@ class ProductMatchingEngine
         return new ProductMatchResult($product, 0, true);
     }
 
+    private function applySynonyms(string $text): string
+    {
+        $synonyms = config('synonyms');
+
+        $tokens = explode(' ', $text);
+
+        $normalizedTokens = array_map(function ($token) use ($synonyms) {
+            return $synonyms[$token] ?? $token;
+        }, $tokens);
+
+        return implode(' ', $normalizedTokens);
+    }
+
     private function calculateScore(array $data, Product $product): int
     {
         $score = 0;
@@ -89,17 +102,17 @@ class ProductMatchingEngine
 
     private function tokenScore(string $a, string $b): int
     {
-        $tokensA = explode(' ', $a);
-        $tokensB = explode(' ', $b);
+        $tokensA = explode(' ', $this->applySynonyms($a));
+        $tokensB = explode(' ', $this->applySynonyms($b));
 
         $intersection = array_intersect($tokensA, $tokensB);
 
-        return count($intersection) * 5; // 5 pontos por palavra igual
+        return count($intersection) * 5;
     }
 
     private function normalize(string $text): string
     {
-        return Str::of($text)
+        $normalized = Str::of($text)
             ->lower()
             ->ascii()
             ->replace(['-', '_', '/', ','], ' ')
@@ -107,6 +120,8 @@ class ProductMatchingEngine
             ->replaceMatches('/\s+/', ' ')
             ->trim()
             ->toString();
+
+        return $this->applySynonyms($normalized);
     }
 
     private function findSimilar(string $normalizedName): Collection
