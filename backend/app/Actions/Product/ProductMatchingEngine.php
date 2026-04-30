@@ -7,13 +7,8 @@ use App\Domain\Matching\FeatureExtractor;
 use App\Domain\Matching\Scoring\CompositeScorer;
 use App\Domain\Product\ProductMatchResult;
 use App\Models\Product;
-use App\Models\Synonym;
 use App\Services\Product\ProductAttributeParser;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
 
 class ProductMatchingEngine
 {
@@ -69,20 +64,19 @@ class ProductMatchingEngine
         }
 
         if ($bestScore >= 80) {
-            return ProductMatchResult::make($best, $bestScore, $bestBreakdown);
+            return ProductMatchResult::make($best->id, $bestScore, $bestBreakdown);
         }
 
         $product = Product::create([
             'name' => $parsed->original,
             'normalized_name' => $parsed->normalized,
             'barcode' => $parsed->barcode,
-            'breakdown' => $bestBreakdown,
             'brand_id' => $parsed->brandId,
             'category_id' => $parsed->categoryId,
             'unit_type_id' => $parsed->unitTypeId,
         ]);
 
-        return ProductMatchResult::make($product->id, 0, $bestBreakdown);
+        return ProductMatchResult::make($product->id, $bestScore, $bestBreakdown);
     }
 
     private function findCandidates(string $normalizedName): Collection
