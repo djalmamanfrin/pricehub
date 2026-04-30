@@ -11,6 +11,7 @@ class OfferController extends Controller
     public function store(Request $request, CreateOfferAction $action)
     {
         $data = $request->validate([
+            'brand_id' => 'required|exists:brands,id',
             'product_name' => 'required|string',
             'market_name' => 'required|string',
             'price' => 'required|numeric|min:0',

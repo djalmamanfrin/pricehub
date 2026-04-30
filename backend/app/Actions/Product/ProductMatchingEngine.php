@@ -33,12 +33,13 @@ class ProductMatchingEngine
             }
         }
 
-        if ($best && $bestScore >= 80) {
+        if ($best && $best->brand_id === $data['brand_id'] && $bestScore >= 80) {
             return new ProductMatchResult($best, $bestScore, false);
         }
 
         $product = Product::create([
             'name' => $data['product_name'],
+            'brand_id' => $data['brand_id'],
             'normalized_name' => $normalizedName,
             'barcode' => $data['barcode'] ?? null
         ]);

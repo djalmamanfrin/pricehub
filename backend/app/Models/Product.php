@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    protected $fillable = ['name', 'normalized_name', 'barcode'];
+    protected $fillable = ['brand_id', 'name', 'normalized_name', 'barcode'];
 
     public function offers(): HasMany
     {
