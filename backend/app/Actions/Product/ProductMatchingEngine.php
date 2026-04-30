@@ -76,6 +76,7 @@ class ProductMatchingEngine
             'name' => $parsed->original,
             'normalized_name' => $parsed->normalized,
             'barcode' => $parsed->barcode,
+            'breakdown' => $bestBreakdown,
             'brand_id' => $parsed->brandId,
             'category_id' => $parsed->categoryId,
             'unit_type_id' => $parsed->unitTypeId,
