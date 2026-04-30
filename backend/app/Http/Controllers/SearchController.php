@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SearchProductsAction;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;
+use Illuminate\Support\Arr;
 
 class SearchController extends Controller
 {
-    public function search(Request $request)
+    public function search(Request $request, SearchProductsAction $action)
     {
         $query = $request->input('query');
 
@@ -15,43 +17,15 @@ class SearchController extends Controller
             return ApiResponse::error('Informe o produto', 422);
         }
 
-        // MOCK inicial (depois vem banco/Elastic)
-        $results = $this->mockSearch($query);
+        $data = $action($query);
 
-        if (empty($results)) {
+        if (empty($data)) {
             return ApiResponse::error('Nenhum produto encontrado', 404);
         }
 
         return ApiResponse::success(
-            'Produtos encontrados',
-            [
-                'query' => $query,
-                'results' => $results
-            ]
+           Arr::get($data, 'text'),
+            $data
         );
-    }
-
-    private function mockSearch(string $query): array
-    {
-        $products = [
-            [
-                'name' => 'Coca-Cola 2L',
-                'offers' => [
-                    ['market' => 'Condor', 'price' => 9.49],
-                    ['market' => 'Muffato', 'price' => 8.99],
-                ]
-            ],
-            [
-                'name' => 'Coca-Cola 600ml',
-                'offers' => [
-                    ['market' => 'Condor', 'price' => 4.99],
-                    ['market' => 'Muffato', 'price' => 4.79],
-                ]
-            ]
-        ];
-
-        return array_filter($products, function ($product) use ($query) {
-            return str_contains(strtolower($product['name']), strtolower($query));
-        });
     }
 }
