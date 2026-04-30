@@ -5,7 +5,6 @@ use App\Http\Middleware\CorrelationIdMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -19,11 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->use([
-            HandlePrecognitiveRequests::class,
-            SubstituteBindings::class,
-        ]);
-
         $middleware->group('api', [
             CorrelationIdMiddleware::class,
             SubstituteBindings::class,
