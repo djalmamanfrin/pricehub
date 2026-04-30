@@ -82,7 +82,7 @@ class ProductMatchingEngine
             'unit_type_id' => $parsed->unitTypeId,
         ]);
 
-        return ProductMatchResult::make($product, 0, $bestBreakdown);
+        return ProductMatchResult::make($product->id, 0, $bestBreakdown);
     }
 
     private function findCandidates(string $normalizedName): Collection
