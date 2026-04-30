@@ -19,4 +19,14 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function unitType(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class);
+    }
 }

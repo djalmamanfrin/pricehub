@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('brand_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('unit_type_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('name');
             $table->string('normalized_name')->index();
