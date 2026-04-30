@@ -4,8 +4,10 @@ namespace App\Actions\Product;
 
 use App\Domain\Product\ProductMatchResult;
 use App\Models\Product;
+use App\Models\Synonym;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -102,12 +104,20 @@ class ProductMatchingEngine
 
     private function tokenScore(string $a, string $b): int
     {
-        $tokensA = explode(' ', $this->applySynonyms($a));
-        $tokensB = explode(' ', $this->applySynonyms($b));
+        $tokensA = explode(' ', $a);
+        $tokensB = explode(' ', $b);
+        $synonyms = $this->getSynonyms();
 
-        $intersection = array_intersect($tokensA, $tokensB);
+        $score = 0;
 
-        return count($intersection) * 5;
+        foreach ($tokensA as $token) {
+            if (in_array($token, $tokensB)) {
+                $weight = $synonyms[$token]['weight'] ?? 1;
+                $score += 5 * $weight;
+            }
+        }
+
+        return $score;
     }
 
     private function normalize(string $text): string
@@ -132,5 +142,15 @@ class ProductMatchingEngine
             $query->orWhere('normalized_name', 'like', "%{$token}%");
         }
         return $query->limit(50)->get();
+    }
+
+    private function getSynonyms(): array
+    {
+        return Cache::remember('synonyms', now()->addHours(6), function () {
+            return Synonym::all()
+                ->groupBy('term')
+                ->map(fn ($items) => $items->first())
+                ->toArray();
+        });
     }
 }
