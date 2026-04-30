@@ -23,7 +23,7 @@ class ProductMatchingEngine
         private ProductAttributeParser $parser
     ) {}
 
-    public function match(array $data): Product
+    public function match(array $data): ProductMatchResult
     {
         $parsed = new ParsedInput(
             original: $data['product_name'],
@@ -40,17 +40,14 @@ class ProductMatchingEngine
             $existing = Product::where('barcode', $parsed->barcode)->first();
 
             if ($existing) {
-                $existing->match_score = 100;
-                return $existing;
+                return new ProductMatchResult($existing, 100, false);
             }
         }
 
         // 2. Nome exato
         $existing = Product::where('normalized_name', $parsed->normalized)->first();
-
         if ($existing) {
-            $existing->match_score = 90;
-            return $existing;
+            return new ProductMatchResult($existing, 90, false);
         }
 
         // 3. Matching com score
@@ -66,15 +63,14 @@ class ProductMatchingEngine
             if ($score > $bestScore) {
                 $bestScore = $score;
                 $best = $product;
-                $best->match_score = $score;
             }
         }
 
         if ($bestScore >= 80) {
-            return $best;
+            return new ProductMatchResult($best, $bestScore, false);
         }
 
-        return Product::create([
+        $product = Product::create([
             'name' => $parsed->original,
             'normalized_name' => $parsed->normalized,
             'barcode' => $parsed->barcode,
@@ -83,6 +79,8 @@ class ProductMatchingEngine
             'category_id' => $parsed->categoryId,
             'unit_type_id' => $parsed->unitTypeId,
         ]);
+
+        return new ProductMatchResult($product, 0, true);
     }
 
     private function findCandidates(string $normalizedName): Collection
