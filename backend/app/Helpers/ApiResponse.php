@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 
 class ApiResponse
 {
-    public static function success($message = '', $data = []): JsonResponse
+    public static function success(string $message = '', array $data = []): JsonResponse
     {
         return response()->json([
             'message' => $message,
