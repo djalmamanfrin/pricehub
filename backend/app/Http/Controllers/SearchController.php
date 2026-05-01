@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SearchProductsAction;
+use App\Actions\Product\SearchProductsAction;
+use App\Helpers\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Helpers\ApiResponse;
 
 class SearchController extends Controller
 {
