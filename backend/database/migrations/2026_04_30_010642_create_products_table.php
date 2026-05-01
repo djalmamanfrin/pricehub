@@ -17,6 +17,9 @@ return new class extends Migration
 
             $table->string('name');
             $table->string('normalized_name')->index();
+            $table->integer('quantity')->nullable();
+            $table->string('unit_measure')->nullable();
+            $table->integer('pack_size')->default(1);
             $table->string('barcode')->nullable()->unique();
             $table->json('embedding')->nullable();
             $table->timestamps();
