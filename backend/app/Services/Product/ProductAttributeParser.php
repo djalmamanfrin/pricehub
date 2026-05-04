@@ -2,8 +2,10 @@
 
 namespace App\Services\Product;
 
+use App\Models\BaseUnit;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Synonym;
 use App\Models\UnitType;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -88,7 +90,7 @@ class ProductAttributeParser
     private function getSynonyms(): array
     {
         return Cache::remember('synonyms', now()->addHours(6), function () {
-            return \App\Models\Synonym::all()
+            return Synonym::all()
                 ->groupBy('term')
                 ->map(fn ($items) => $items->first()->toArray())
                 ->toArray();
@@ -106,7 +108,7 @@ class ProductAttributeParser
         $brands = $this->getBrands();
 
         foreach ($brands as $brand) {
-            if (str_contains($text, $brand['normalized_name'])) {
+            if (preg_match('/\b' . preg_quote($brand['normalized_name'], '/') . '\b/', $text)) {
                 return $brand['id'];
             }
         }
@@ -184,23 +186,57 @@ class ProductAttributeParser
 
     /*
     |--------------------------------------------------------------------------
-    | VOLUME
+    | Measurement
     |--------------------------------------------------------------------------
     */
 
-    public function extractVolumeMl(string $text): ?int
+    public function extractMeasurement(string $text): ?array
     {
-        // 350ml
-        if (preg_match('/(\d+)\s?(ml)/i', $text, $m)) {
+        $units = $this->getBaseUnits();
+
+        if (!preg_match('/(\d+[.,]?\d*)\s?(ml|l|litro|litros|g|grama|gramas|kg|quilo|quilos)/i', $text, $m)) {
+            return null;
+        }
+
+        $rawValue = str_replace(',', '.', $m[1]);
+        $unitRaw = strtolower($m[2]);
+
+        // normaliza unidade textual → símbolo padrão
+        $unit = match ($unitRaw) {
+            'litro', 'litros' => 'l',
+            'grama', 'gramas' => 'g',
+            'quilo', 'quilos' => 'kg',
+            default => $unitRaw, // ml, l, g, kg já vêm corretos
+        };
+
+        return [
+            'quantity' => (float) $rawValue,
+            'base_unit_id' => $units[$unit] ?? null,
+        ];
+    }
+
+    private function getBaseUnits(): array
+    {
+        return cache()->remember('base_units_map', now()->addHours(6), function () {
+            return BaseUnit::all()
+                ->mapWithKeys(fn ($u) => [
+                    strtolower($u->symbol) => $u->id
+                ])
+                ->toArray();
+        });
+    }
+
+    public function extractPackSize(string $text): int
+    {
+        if (preg_match('/(\d+)\s?x/i', $text, $m)) {
             return (int) $m[1];
         }
 
-        // 2l, 2 litros
-        if (preg_match('/(\d+)\s?(l|litro|litros)/i', $text, $m)) {
-            return (int) $m[1] * 1000;
+        if (preg_match('/pack\s?(com)?\s?(\d+)/i', $text, $m)) {
+            return (int) $m[2];
         }
 
-        return null;
+        return 1;
     }
 
     /*
