@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('term')->index();
             $table->string('normalized');
-            $table->integer('weight')->default(1);
+            $table->string('type')->default('generic')->index();
+            $table->decimal('weight', 5,2)->default(1.0);
             $table->timestamps();
         });
     }
