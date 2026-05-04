@@ -4,15 +4,15 @@ namespace App\Domain\Matching\Scoring;
 
 use App\Domain\Matching\DTO\FeatureVector;
 
-class NameSimilarityScorer implements ScorerInterface
+class SynonymScorer implements ScorerInterface
 {
-    const SIMILARITY = 'name_similarity';
+    const string SIMILARITY = 'synonym_similarity';
     public function score(FeatureVector $features): array
     {
-        // penalização forte
-        $score = ($features->get(self::SIMILARITY) ?? 0) * 0.4;
+        $value = $features->get(self::SIMILARITY) ?? 0;
+
         return [
-            'score' => $score,
+            'score' => $value * 0.3,
             'rule' => self::SIMILARITY
         ];
     }
