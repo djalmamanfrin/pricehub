@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('normalized_name')->unique();
+            $table->string('path')->index(); // ex: bebidas.refrigerante.cola
+            $table->foreignId('parent_id')->nullable()->constrained('categories');
             $table->timestamps();
         });
     }
