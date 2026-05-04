@@ -10,7 +10,9 @@ class ParsedInput
         public ?int $brandId,
         public ?int $categoryId,
         public ?int $unitTypeId,
-        public ?int $volumeMl,
+        public ?int $baseUnitId,
+        public ?string $packSize,
+        public ?int $quantity,
         public ?string $barcode
     ) {}
 
