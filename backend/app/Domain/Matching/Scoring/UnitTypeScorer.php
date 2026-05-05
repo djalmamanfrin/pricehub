@@ -5,21 +5,26 @@ namespace App\Domain\Matching\Scoring;
 use App\Domain\Matching\DTO\ParsedInput;
 use App\Models\Product;
 
-readonly class UnitTypeScorer implements ScorerInterface
+class UnitTypeScorer extends AbstractScorer
 {
-    public function __construct(
-        private ParsedInput $input,
-        private Product $product
-    ) {}
-    public function score(): array
+    public function apply(ParsedInput $input, Product $product): self
     {
-        if (is_null($this->input->unitTypeId)) {
-            return ['rule' => 'unit_type_unknown', 'score' => 0];
+        if (is_null($input->unitTypeId)) {
+            $this->setValue(0);
+            $this->setRule('unit_type_unknown');
+
+            return $this;
         }
-        if ($this->input->unitTypeId === $this->product->unit_type_id) {
-            return ['rule' => 'unit_type_match', 'score' => 20];
+        if ($input->unitTypeId === $product->unit_type_id) {
+            $this->setValue(20);
+            $this->setRule('unit_type_match');
+
+            return $this;
         }
 
-        return ['rule' => 'unit_type_conflict', 'score' => -80];
+        $this->setValue(-80);
+        $this->setRule('unit_type_conflict');
+
+        return $this;
     }
 }
