@@ -4,6 +4,7 @@ namespace App\Domain\Matching;
 
 use App\Domain\Matching\DTO\ParsedInput;
 use App\Domain\Matching\Scoring\BarcodeScorer;
+use App\Domain\Matching\Scoring\BaseUnitScorer;
 use App\Domain\Matching\Scoring\BrandScorer;
 use App\Domain\Matching\Scoring\PackSizeScorer;
 use App\Domain\Matching\Scoring\SynonymScorer;
@@ -19,11 +20,6 @@ class FeatureExtractor
             $breakdown[] = $feature->score();
         }
         return $breakdown;
-//
-//        // Penalty
-//        $feature->add(VolumePenalty::NAME_DIFF,
-//            abs(($input->volumeMl ?? 0) - ($product->volume_ml ?? 0))
-//        );
     }
 
     private function features(ParsedInput $input, Product $product): array
@@ -34,7 +30,7 @@ class FeatureExtractor
             new SynonymScorer($input, $product),
             new UnitTypeScorer($input, $product),
             new PackSizeScorer($input, $product),
-//            new VolumeDifferenceFeature($input, $product),
+            new BaseUnitScorer($input, $product),
         ];
     }
 }
