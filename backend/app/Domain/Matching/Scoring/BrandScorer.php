@@ -5,22 +5,27 @@ namespace App\Domain\Matching\Scoring;
 use App\Domain\Matching\DTO\ParsedInput;
 use App\Models\Product;
 
-readonly class BrandScorer implements ScorerInterface
+class BrandScorer extends AbstractScorer
 {
-    public function __construct(
-        private ParsedInput $input,
-        private Product $product
-    ) {}
 
-    public function score(): array
+    public function apply(ParsedInput $input, Product $product): self
     {
-        if (is_null($this->input->brandId)) {
-            return ['rule' => 'brand_unknown', 'score' => 0];
+        if (is_null($input->brandId)) {
+            $this->setValue(0);
+            $this->setRule('brand_unknown');
+
+            return $this;
         }
-        if ($this->input->brandId === $this->product->brand_id) {
-            return ['rule' => 'brand_match', 'score' => 20];
+        if ($input->brandId === $product->brand_id) {
+            $this->setValue(20);
+            $this->setRule('brand_match');
+
+            return $this;
         }
 
-        return ['rule' => 'brand_conflict', 'score' => -80];
+        $this->setValue(-80);
+        $this->setRule('brand_conflict');
+
+        return $this;
     }
 }
