@@ -5,22 +5,26 @@ namespace App\Domain\Matching\Scoring;
 use App\Domain\Matching\DTO\ParsedInput;
 use App\Models\Product;
 
-readonly class PackSizeScorer implements ScorerInterface
+class PackSizeScorer extends AbstractScorer
 {
-    public function __construct(
-        private ParsedInput $input,
-        private Product $product
-    ) {}
-
-    public function score(): array
+    public function apply(ParsedInput $input, Product $product): self
     {
-        if (is_null($this->input->packSizeId)) {
-            return ['rule' => 'pack_size_unknown', 'score' => 0];
+        if (is_null($input->packSizeId)) {
+            $this->setValue(0);
+            $this->setRule('pack_size_unknown');
+
+            return $this;
         }
-        if ($this->input->packSizeId === $this->product->pack_size_id) {
-            return ['rule' => 'pack_size_match', 'score' => 20];
+        if ($input->packSizeId === $product->pack_size_id) {
+            $this->setValue(20);
+            $this->setRule('pack_size_match');
+
+            return $this;
         }
 
-        return ['rule' => 'pack_size_conflict', 'score' => -80];
+        $this->setValue(-80);
+        $this->setRule('pack_size_conflict');
+
+        return $this;
     }
 }
