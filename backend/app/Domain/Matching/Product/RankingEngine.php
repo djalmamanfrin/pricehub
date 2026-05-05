@@ -27,7 +27,7 @@ class RankingEngine
             if ($result['score'] > $bestScore) {
                 $best = $product;
                 $bestScore = $result['score'];
-                $bestBreakdown = $result['breakdown'];
+                $bestBreakdown = $result['rule'];
             }
         }
 

@@ -2,18 +2,25 @@
 
 namespace App\Domain\Matching\Scoring;
 
-use App\Domain\Matching\DTO\FeatureVector;
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Models\Product;
 
-class BrandScorer implements ScorerInterface
+readonly class BrandScorer implements ScorerInterface
 {
-    const MATCH = 'brand_match';
-    public function score(FeatureVector $features): array
+    public function __construct(
+        private ParsedInput $input,
+        private Product $product
+    ) {}
+
+    public function score(): array
     {
-        // penalização forte
-        $score = $features->get(self::MATCH) ? 30 : -80;
-        return [
-            'score' => $score,
-            'rule' => self::MATCH
-        ];
+        if (is_null($this->input->brandId)) {
+            return ['rule' => 'brand_unknown', 'score' => 0];
+        }
+        if ($this->input->brandId === $this->product->brand_id) {
+            return ['rule' => 'brand_match', 'score' => 20];
+        }
+
+        return ['rule' => 'brand_conflict', 'score' => -80];
     }
 }

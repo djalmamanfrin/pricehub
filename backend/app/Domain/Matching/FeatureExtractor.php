@@ -4,6 +4,9 @@ namespace App\Domain\Matching;
 
 use App\Domain\Matching\DTO\FeatureVector;
 use App\Domain\Matching\DTO\ParsedInput;
+use App\Domain\Matching\Penalty\PackPenalty;
+use App\Domain\Matching\Penalty\UnitTypePenalty;
+use App\Domain\Matching\Penalty\VolumePenalty;
 use App\Domain\Matching\Scoring\BarcodeScorer;
 use App\Domain\Matching\Scoring\BrandScorer;
 use App\Domain\Matching\Scoring\SynonymScorer;
@@ -14,34 +17,43 @@ use Illuminate\Support\Facades\Cache;
 
 class FeatureExtractor
 {
-    public function extract(ParsedInput $input, Product $product): FeatureVector
+    public function extract(ParsedInput $input, Product $product): array
     {
-        $feature = new FeatureVector();
+        $breakdown = [];
+        foreach ($this->features($input, $product) as $feature) {
+            $breakdown[] = $feature->score();
+        }
+        return $breakdown;
 
-        $feature->add(BarcodeScorer::MATCH,
-            $input->barcode !== null && $input->barcode === $product->barcode
-        );
+        // Score
+//        $feature->add(BarcodeScorer::MATCH,
+//            $input->barcode !== null && $input->barcode === $product->barcode
+//        );
+//        $feature->add(SynonymScorer::SIMILARITY,
+//            $this->synonymSimilarity($input->normalized, $product->normalized_name));
+//
+//        // Penalty
+//        $feature->add(VolumePenalty::NAME_DIFF,
+//            abs(($input->volumeMl ?? 0) - ($product->volume_ml ?? 0))
+//        );
+//        $feature->add(UnitTypePenalty::MATCH,
+//            $input->unitTypeId && $product->unit_type_id === $input->unitTypeId
+//        );
+//        $feature->add(PackPenalty::PACK_SIZE_DIFF,
+//            abs(($input->packSize ?? 1) - ($product->pack_size ?? 1))
+//        );
+    }
 
-        $feature->add(BrandScorer::MATCH,
-            $input->brandId !== null && $input->brandId === $product->brand_id
-        );
-
-        $feature->add(SynonymScorer::SIMILARITY,
-            $this->synonymSimilarity($input->normalized, $product->normalized_name));
-
-        // =========================
-        // 3. TOKEN FEATURES
-        // =========================
-
-        $tokensA = explode(' ', $input->normalized);
-        $tokensB = explode(' ', $product->normalized_name);
-
-        $intersection = array_intersect($tokensA, $tokensB);
-
-        $feature->add(TokenScorer::OVERLAP, count($intersection));
-        $feature->add(TokenScorer::TOTAL, count($tokensA));
-
-        return $feature;
+    private function features(ParsedInput $input, Product $product): array
+    {
+        return [
+//            new BarcodeScorer($input, $product),
+            new BrandScorer($input, $product),
+//            new SynonymSimilarityFeature($input, $product, $this->getSynonyms()),
+//            new VolumeDifferenceFeature($input, $product),
+//            new UnitTypeMatchFeature($input, $product),
+//            new PackSizeDifferenceFeature($input, $product),
+        ];
     }
 
     private function synonymSimilarity(string $input, string $target): float

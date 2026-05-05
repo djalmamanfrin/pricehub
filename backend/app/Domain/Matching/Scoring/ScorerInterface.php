@@ -6,5 +6,5 @@ use App\Domain\Matching\DTO\FeatureVector;
 
 interface ScorerInterface
 {
-    public function score(FeatureVector $features): array;
+    public function score(): array;
 }
