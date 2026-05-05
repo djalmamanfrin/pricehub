@@ -7,20 +7,15 @@ use App\Models\Product;
 use App\Models\Synonym;
 use Illuminate\Support\Facades\Cache;
 
-readonly class SynonymScorer implements ScorerInterface
+class SynonymScorer extends AbstractScorer
 {
-    public function __construct(
-        private ParsedInput $input,
-        private Product $product
-    ) {}
-    public function score(): array
+    public function apply(ParsedInput $input, Product $product): self
     {
-        $score = $this->synonymSimilarity($this->input->normalized, $this->product->normalized_name);
+        $score = $this->synonymSimilarity($input->normalized, $product->normalized_name);
+        $this->setValue($score);
+        $this->setRule('synonym_similarity');
 
-        return [
-            'score' => $score,
-            'rule' => 'synonym_similarity'
-        ];
+        return $this;
     }
 
     private function synonymSimilarity(string $input, string $target): float
