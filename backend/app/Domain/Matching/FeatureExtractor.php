@@ -25,10 +25,6 @@ class FeatureExtractor
         }
         return $breakdown;
 
-        // Score
-//        $feature->add(BarcodeScorer::MATCH,
-//            $input->barcode !== null && $input->barcode === $product->barcode
-//        );
 //        $feature->add(SynonymScorer::SIMILARITY,
 //            $this->synonymSimilarity($input->normalized, $product->normalized_name));
 //
@@ -47,7 +43,7 @@ class FeatureExtractor
     private function features(ParsedInput $input, Product $product): array
     {
         return [
-//            new BarcodeScorer($input, $product),
+            new BarcodeScorer($input, $product),
             new BrandScorer($input, $product),
 //            new SynonymSimilarityFeature($input, $product, $this->getSynonyms()),
 //            new VolumeDifferenceFeature($input, $product),
