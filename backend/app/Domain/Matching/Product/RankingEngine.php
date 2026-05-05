@@ -11,8 +11,7 @@ use Illuminate\Support\Collection;
 class RankingEngine
 {
     public function __construct(
-        private readonly FeatureExtractor $extractor,
-        private readonly CompositeScorer $scorer,
+        private readonly CompositeScorer $composite,
     ) {}
     public function rank(ParsedInput $input, Collection $candidates): ProductMatchResult
     {
@@ -21,8 +20,7 @@ class RankingEngine
         $bestBreakdown = [];
 
         foreach ($candidates as $product) {
-            $features = $this->extractor->extract($input, $product);
-            $result = $this->scorer->score($features);
+            $result = $this->composite->score($input, $product);
 
             if ($result['score'] > $bestScore) {
                 $best = $product;

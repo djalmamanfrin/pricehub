@@ -2,25 +2,28 @@
 
 namespace App\Domain\Matching\Scoring;
 
-use App\Domain\Matching\DTO\FeatureVector;
 use App\Domain\Matching\DTO\ParsedInput;
 use App\Models\Product;
 
-class BarcodeScorer implements ScorerInterface
+class BarcodeScorer extends AbstractScorer
 {
-    public function __construct(
-        private ParsedInput $input,
-        private Product $product
-    ) {}
-    public function score(): array
+    public function apply(ParsedInput $input, Product $product): self
     {
-        if (is_null($this->input->barcode)) {
-            return ['rule' => 'barcode_unknown', 'score' => 0];
+        if (is_null($input->barcode)) {
+            $this->setValue(0);
+            $this->setRule('barcode_unknown');
+
+            return $this;
         }
-        if ($this->input->barcode === $this->product->barcode) {
-            return ['rule' => 'barcode_match', 'score' => 100];
+        if ($input->barcode === $product->barcode) {
+            $this->setValue(100);
+            $this->setRule('barcode_match');
+            return $this;
         }
 
-        return ['rule' => 'barcode_conflict', 'score' => -80];
+        $this->setValue(-80);
+        $this->setRule('barcode_conflict');
+
+        return $this;
     }
 }

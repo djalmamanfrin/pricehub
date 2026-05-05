@@ -2,9 +2,12 @@
 
 namespace App\Domain\Matching\Scoring;
 
-use App\Domain\Matching\DTO\FeatureVector;
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Models\Product;
 
 interface ScorerInterface
 {
-    public function score(): array;
+    public function apply(ParsedInput $input, Product $product): self;
+    public function getValue(): int;
+    public function getRule(): string;
 }

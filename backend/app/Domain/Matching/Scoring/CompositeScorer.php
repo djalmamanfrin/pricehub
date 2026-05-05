@@ -2,7 +2,8 @@
 
 namespace App\Domain\Matching\Scoring;
 
-use App\Domain\Matching\DTO\FeatureVector;
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Models\Product;
 
 readonly class CompositeScorer
 {
@@ -10,16 +11,18 @@ readonly class CompositeScorer
         private array $scorers
     ) {}
 
-    public function score(FeatureVector $features): array
+    public function score(ParsedInput $input, Product $product): array
     {
         $total = 0;
         $breakdown = [];
+
+        /** @var ScorerInterface $scorer */
         foreach ($this->scorers as $scorer) {
-            $result = $scorer->score($features);
-            $total += $result['score'];
+            $scorer = $scorer->apply($input, $product);
+            $total += $scorer->getValue();
             $breakdown[] = [
-                'rule' => $result['rule'],
-                'score' => $result['score'],
+                'rule' => $scorer->getRule(),
+                'score' => $scorer->getValue(),
             ];
         }
 
