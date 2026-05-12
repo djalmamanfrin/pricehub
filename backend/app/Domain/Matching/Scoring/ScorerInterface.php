@@ -8,6 +8,6 @@ use App\Models\Product;
 interface ScorerInterface
 {
     public function apply(ParsedInput $input, Product $product): self;
-    public function getValue(): int;
+    public function getValue(): float;
     public function getRule(): string;
 }

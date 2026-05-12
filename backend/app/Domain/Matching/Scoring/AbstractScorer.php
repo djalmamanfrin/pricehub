@@ -7,16 +7,16 @@ use App\Models\Product;
 
 abstract class AbstractScorer implements ScorerInterface
 {
-    private int $value = 0;
+    private float $value = 0;
     private string $rule = '';
     abstract public function apply(ParsedInput $input, Product $product): self;
 
-    protected function setValue(int $value): void
+    protected function setValue(float $value): void
     {
         $this->value = $value;
     }
 
-    public function getValue(): int
+    public function getValue(): float
     {
         return $this->value;
     }
