@@ -2,17 +2,24 @@
 
 namespace App\Domain\Matching\Scoring;
 
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Models\Product;
 use App\Models\Synonym;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * TODO
+ * O próximo salto grande será: ranking normalization
+ * E depois: candidate retrieval otimizado
+ */
 class TokenScorer extends AbstractScorer
 {
     private array $typeWeights = [
-        'brand' => 5,
-        'product' => 4,
-        'flavor' => 3,
-        'unit' => 2,
-        'volume' => 4,
+        'brand' => 8,
+        'product' => 7,
+        'flavor' => 4,
+        'unit' => 3,
+        'volume' => 8,
         'generic' => 1,
     ];
 
@@ -43,8 +50,16 @@ class TokenScorer extends AbstractScorer
 
             if (empty($tokensA) || empty($tokensB)) {
 
-                // penalidade leve para tipos críticos ausentes
-                if (in_array($type, ['brand', 'volume'])) {
+                $inputHasType = !empty($tokensA);
+                $productHasType = !empty($tokensB);
+
+                // penaliza somente quando input possui
+                // e produto não possui
+                if (
+                    $inputHasType &&
+                    !$productHasType &&
+                    in_array($type, ['brand', 'volume', 'unit'])
+                ) {
                     $score -= 10 * $weight;
                 }
 
@@ -75,7 +90,7 @@ class TokenScorer extends AbstractScorer
 
             $jaccard = $unionWeight > 0 ? $intersectionWeight / $unionWeight : 0;
 
-            $score += $jaccard * $weight * 10;
+            $score += $jaccard * $weight * 12;
         }
 
         return $score;
@@ -93,6 +108,16 @@ class TokenScorer extends AbstractScorer
             if (isset($synonyms[$token])) {
 
                 // pega o melhor synonym (maior peso)
+                /**
+                 * TODO
+                 * Transformar token em:
+                 *
+                 * [
+                 *      classifications => []
+                 * ]
+                 *
+                 * Em vez de escolher uma só.
+                 */
                 $best = collect($synonyms[$token])
                     ->sortByDesc('weight')
                     ->first();
