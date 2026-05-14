@@ -1,0 +1,81 @@
+<?php
+
+dataset('token_scorer_cases', [
+    [
+        'scenario' => 'perfect match',
+        'input' => 'Refrigerante Coca Cola lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 100,
+        'maxScore' => 100,
+    ],
+    [
+        'scenario' => 'different unit type and volume',
+        'input' => 'Refrigerante Coca Cola lata 350ml',
+        'product' => 'Refrigerante Coca Cola pet 600ml',
+        'minScore' => 70,
+        'maxScore' => 70,
+    ],
+    [
+        'scenario' => 'missing unit type and different volume',
+        'input' => 'Refrigerante Coca Cola 350ml',
+        'product' => 'Refrigerante Coca Cola lata 600ml',
+        'minScore' => 70,
+        'maxScore' => 70,
+    ],
+    [
+        'scenario' => 'missing unit type and volume',
+        'input' => 'Refrigerante Coca Cola',
+        'product' => 'Refrigerante Coca Cola pet 600ml',
+        'minScore' => 70,
+        'maxScore' => 70,
+    ],
+    [
+        'scenario' => 'missing brand',
+        'input' => 'Refrigerante Cola lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 70,
+        'maxScore' => 70,
+    ],
+    [
+        'scenario' => 'missing brand and category',
+        'input' => 'Cola lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 45,
+        'maxScore' => 45,
+    ],
+    [
+        'scenario' => 'duplicate tokens do not inflate score',
+        'input' => 'Coca Coca Cola Cola',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 45,
+        'maxScore' => 45,
+    ],
+    [
+        'scenario' => 'unrelated product',
+        'input' => 'Refrigerante Pepsi Cola lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 70,
+        'maxScore' => 70,
+    ],
+    [
+        'scenario' => 'unrelated product and flavor',
+        'input' => 'Refrigerante Guarana Antartica Guarana lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 55,
+        'maxScore' => 55,
+    ],
+    [
+        'scenario' => 'uses synonyms for matching',
+        'input' => 'Refri Coca cola Lata 350ml',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 100,
+        'maxScore' => 100,
+    ],
+    [
+        'scenario' => 'short inputs - only flavor and unit type ',
+        'input' => 'Coca Lata',
+        'product' => 'Refrigerante Coca Cola lata 350ml',
+        'minScore' => 45,
+        'maxScore' => 45,
+    ],
+]);
