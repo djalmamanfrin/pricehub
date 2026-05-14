@@ -1,5 +1,7 @@
 <?php
 
+use App\Domain\Matching\DTO\ParsedInput;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +46,27 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
-{
-    // ..
-}
+expect()->extend('toMatchScore', function (
+    string $scenario,
+    float $min,
+    float $max,
+    string $input,
+    string $product,
+) {
+
+    $value = $this->value;
+
+    if ($value < $min || $value > $max) {
+        $message = scorerContext($scenario, $input, $product, $value);
+        test()->fail(
+            sprintf(
+                'Expected score between [%s] and [%s].%s',
+                $min,
+                $max,
+                $message
+            )
+        );
+    }
+
+    return $this;
+});
