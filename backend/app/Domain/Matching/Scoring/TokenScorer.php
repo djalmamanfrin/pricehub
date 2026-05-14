@@ -7,20 +7,14 @@ use App\Models\Product;
 use App\Models\Synonym;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * TODO
- * O próximo salto grande será: ranking normalization
- * E depois: candidate retrieval otimizado
- */
 class TokenScorer extends AbstractScorer
 {
     private array $typeWeights = [
-        'brand' => 8,
-        'product' => 7,
-        'flavor' => 4,
-        'unit' => 3,
-        'volume' => 8,
-        'generic' => 1,
+        'brand' => 30,
+        'category' => 25,
+        'flavor' => 15,
+        'unit' => 15,
+        'volume' => 15,
     ];
 
     public function apply(ParsedInput $input, Product $product): self
@@ -31,67 +25,48 @@ class TokenScorer extends AbstractScorer
         $groupA = $this->groupByType($tokensA);
         $groupB = $this->groupByType($tokensB);
 
-        $score = $this->matchByType($groupA, $groupB);
+        $score = $this->matchByCoverage($groupA, $groupB);
 
-        $this->setValue($score);
+        $this->setValue((int) round($score));
         $this->setRule('token_similarity');
 
         return $this;
     }
 
-    private function matchByType(array $a, array $b): float
+    private function matchByCoverage(array $a, array $b): float
     {
         $score = 0;
+        $scoreStep = [];
 
         foreach ($this->typeWeights as $type => $weight) {
 
             $tokensA = $this->uniqueByNormalized($a[$type] ?? []);
             $tokensB = $this->uniqueByNormalized($b[$type] ?? []);
 
-            if (empty($tokensA) || empty($tokensB)) {
-
-                $inputHasType = !empty($tokensA);
-                $productHasType = !empty($tokensB);
-
-                // penaliza somente quando input possui
-                // e produto não possui
-                if (
-                    $inputHasType &&
-                    !$productHasType &&
-                    in_array($type, ['brand', 'volume', 'unit'])
-                ) {
-                    $score -= 10 * $weight;
-                }
-
-                continue;
-            }
-
-            // mapas: normalized => weight
             $mapA = $this->mapTokenWeights($tokensA);
             $mapB = $this->mapTokenWeights($tokensB);
 
-            $intersectionKeys = array_intersect(array_keys($mapA), array_keys($mapB));
-            $unionKeys = array_unique(array_merge(array_keys($mapA), array_keys($mapB)));
+            $intersection = array_intersect(
+                array_keys($mapA),
+                array_keys($mapB)
+            );
 
-            if (empty($unionKeys)) {
+            if (empty($intersection)) {
                 continue;
             }
 
-            // Jaccard ponderado
-            $intersectionWeight = 0;
-            foreach ($intersectionKeys as $key) {
-                $intersectionWeight += min($mapA[$key], $mapB[$key]);
-            }
+            $coverage = count($intersection) / count($mapA);
 
-            $unionWeight = 0;
-            foreach ($unionKeys as $key) {
-                $unionWeight += max($mapA[$key] ?? 0, $mapB[$key] ?? 0);
-            }
-
-            $jaccard = $unionWeight > 0 ? $intersectionWeight / $unionWeight : 0;
-
-            $score += $jaccard * $weight * 12;
+            $score += $coverage * $weight;
+            $scoreStep[] = sprintf(
+                    "[%s] coverage=%.2f weight=%d total=%.2f",
+                    $type,
+                    $coverage,
+                    $weight,
+                    $score
+                ) . PHP_EOL;
         }
+//        dd($scoreStep);
 
         return $score;
     }
@@ -104,20 +79,13 @@ class TokenScorer extends AbstractScorer
         $result = [];
 
         foreach ($tokens as $token) {
+            if ($parsed = $this->parseMeasurementToken($token)) {
+                $result[] = $parsed;
+                continue;
+            }
 
             if (isset($synonyms[$token])) {
 
-                // pega o melhor synonym (maior peso)
-                /**
-                 * TODO
-                 * Transformar token em:
-                 *
-                 * [
-                 *      classifications => []
-                 * ]
-                 *
-                 * Em vez de escolher uma só.
-                 */
                 $best = collect($synonyms[$token])
                     ->sortByDesc('weight')
                     ->first();
@@ -126,7 +94,7 @@ class TokenScorer extends AbstractScorer
                     'value' => $token,
                     'normalized' => $best['normalized'],
                     'type' => $best['type'],
-                    'weight' => $best['weight']
+                    'weight' => $best['weight'],
                 ];
 
                 continue;
@@ -136,11 +104,36 @@ class TokenScorer extends AbstractScorer
                 'value' => $token,
                 'normalized' => $token,
                 'type' => 'generic',
-                'weight' => 1
+                'weight' => 1,
             ];
         }
 
         return $result;
+    }
+
+    private function parseMeasurementToken(string $token): ?array
+    {
+        if (!preg_match('/^(\d+)(ml|l|g|kg)$/i', $token, $matches)) {
+            return null;
+        }
+
+        $quantity = (int) $matches[1];
+        $unit = strtolower($matches[2]);
+
+        $type = match ($unit) {
+            'ml', 'l' => 'volume',
+            'g', 'kg' => 'weight',
+            default => 'generic'
+        };
+
+        return [
+            'value' => $token,
+            'normalized' => $token,
+            'type' => $type,
+            'weight' => 2,
+            'quantity' => $quantity,
+            'unit' => $unit,
+        ];
     }
 
     private function groupByType(array $tokens): array
@@ -160,9 +153,10 @@ class TokenScorer extends AbstractScorer
 
         foreach ($tokens as $token) {
             $key = $token['normalized'];
-
-            // mantém o maior peso caso duplicado
-            if (!isset($unique[$key]) || $token['weight'] > $unique[$key]['weight']) {
+            if (
+                !isset($unique[$key])
+                || $token['weight'] > $unique[$key]['weight']
+            ) {
                 $unique[$key] = $token;
             }
         }
@@ -183,17 +177,24 @@ class TokenScorer extends AbstractScorer
 
     private function getSynonyms(): array
     {
-        return Cache::remember('synonyms_indexed', now()->addHours(6), function () {
-            return Synonym::all()
-                ->groupBy('term')
-                ->map(function ($items) {
-                    return $items->map(fn ($s) => [
-                        'normalized' => $s->normalized,
-                        'weight' => (float) $s->weight,
-                        'type' => $s->type,
-                    ])->toArray();
-                })
-                ->toArray();
-        });
+        return Cache::remember(
+            'synonyms_indexed',
+            now()->addHours(6),
+            function () {
+
+                return Synonym::all()
+                    ->groupBy('term')
+                    ->map(function ($items) {
+
+                        return $items->map(fn ($s) => [
+                            'normalized' => $s->normalized,
+                            'weight' => (float) $s->weight,
+                            'type' => $s->type,
+                        ])->toArray();
+
+                    })
+                    ->toArray();
+            }
+        );
     }
 }
