@@ -9,7 +9,7 @@ function parsed(
     ?int $categoryId = null,
     ?int $unitTypeId = null,
     ?int $baseUnitId = null,
-    ?int $packSize = null,
+    ?string $packSize = null,
     ?int $quantity = null,
     ?string $barcode = null,
 ): ParsedInput {
