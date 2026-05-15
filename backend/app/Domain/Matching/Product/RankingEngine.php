@@ -7,10 +7,10 @@ use App\Domain\Matching\Scoring\CompositeScorer;
 use App\Domain\Product\ProductMatchResult;
 use Illuminate\Support\Collection;
 
-class RankingEngine
+readonly class RankingEngine
 {
     public function __construct(
-        private readonly CompositeScorer $composite,
+        private CompositeScorer $composite,
     ) {}
     public function rank(ParsedInput $input, Collection $candidates): ProductMatchResult
     {
