@@ -10,7 +10,7 @@ function product(
     ?int $categoryId = null,
     ?int $unitTypeId = null,
     ?int $baseUnitId = null,
-    ?int $packSize = null,
+    ?string $packSize = null,
     ?int $quantity = null,
 ): Product {
 
