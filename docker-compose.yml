@@ -1,12 +1,15 @@
 services:
   backend:
-    user: "${UID}:${GID}"
+    user: "${UID:-1000}:${GID:-1000}"
     build:
       context: ./backend
       dockerfile: ../docker/php/Dockerfile
     container_name: pricehub_backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./backend:/var/www
+      - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     networks:
       - pricehub
 
