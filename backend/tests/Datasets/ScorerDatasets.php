@@ -51,7 +51,7 @@ dataset('token_scorer_cases', [
         'maxScore' => 45,
     ],
     [
-        'scenario' => 'unrelated product',
+        'scenario' => 'unrelated brand',
         'input' => 'Refrigerante Pepsi Cola lata 350ml',
         'product' => 'Refrigerante Coca Cola lata 350ml',
         'minScore' => 70,
