@@ -12,9 +12,14 @@ class Product extends Model
         'brand_id',
         'category_id',
         'unit_type_id',
+        'base_unit_id',
         'name',
         'normalized_name',
-        'barcode'
+        'quantity',
+        'quantity_normalized',
+        'pack_size',
+        'barcode',
+        'embedding'
     ];
 
     public function offers(): HasMany
