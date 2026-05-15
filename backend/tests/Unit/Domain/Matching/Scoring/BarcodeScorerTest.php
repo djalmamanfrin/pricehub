@@ -6,7 +6,7 @@ beforeEach(function () {
     $this->scorer = new BarcodeScorer();
 });
 
-dataset('barcode_scorer_cases', [
+dataset('barcode scorer cases', [
 
     'exact barcode match' => [
         'inputBarcode' => '7894900011517',
@@ -55,4 +55,4 @@ it('scores barcode correctly',
             ->and($this->scorer->getRule())
             ->toBe($expectedRule);
     }
-)->with('barcode_scorer_cases');
+)->with('barcode scorer cases');
