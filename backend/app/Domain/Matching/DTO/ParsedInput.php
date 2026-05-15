@@ -11,7 +11,7 @@ class ParsedInput
         public ?int $categoryId,
         public ?int $unitTypeId,
         public ?int $baseUnitId,
-        public ?string $packSize,
+        public ?int $packSize,
         public ?int $quantity,
         public ?string $barcode
     ) {}
