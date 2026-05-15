@@ -15,11 +15,12 @@ readonly class CompositeScorer
     {
         $total = 0;
         $breakdown = [];
+        $scorerCount = count($this->scorers);
 
         /** @var ScorerInterface $scorer */
         foreach ($this->scorers as $scorer) {
             $scorer = $scorer->apply($input, $product);
-            $total += $scorer->getValue();
+            $total += $scorer->getValue() / $scorerCount;
             $breakdown[] = [
                 'rule' => $scorer->getRule(),
                 'score' => $scorer->getValue(),

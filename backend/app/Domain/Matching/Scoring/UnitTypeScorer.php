@@ -16,7 +16,7 @@ class UnitTypeScorer extends AbstractScorer
             return $this;
         }
         if ($input->unitTypeId === $product->unit_type_id) {
-            $this->setValue(20);
+            $this->setValue(100);
             $this->setRule('unit_type_match');
 
             return $this;

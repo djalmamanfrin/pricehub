@@ -17,7 +17,7 @@ class BrandScorer extends AbstractScorer
             return $this;
         }
         if ($input->brandId === $product->brand_id) {
-            $this->setValue(20);
+            $this->setValue(100);
             $this->setRule('brand_match');
 
             return $this;

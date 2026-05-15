@@ -16,7 +16,7 @@ class BaseUnitScorer extends AbstractScorer
             return $this;
         }
         if ($input->baseUnitId === $product->base_unit_id) {
-            $this->setValue(20);
+            $this->setValue(100);
             $this->setRule('base_unit_match');
 
             return $this;
