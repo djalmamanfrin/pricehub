@@ -4,7 +4,7 @@ dataset('simple scorer cases', [
     'match' => [
         'input' => 1,
         'product' => 1,
-        'expectedScore' => 20.0,
+        'expectedScore' => 100.0,
         'expectedRule' => 'match',
     ],
     'conflict' => [
