@@ -3,7 +3,6 @@
 namespace App\Domain\Matching\Product;
 
 use App\Domain\Matching\DTO\ParsedInput;
-use App\Domain\Matching\FeatureExtractor;
 use App\Domain\Matching\Scoring\CompositeScorer;
 use App\Domain\Product\ProductMatchResult;
 use Illuminate\Support\Collection;
