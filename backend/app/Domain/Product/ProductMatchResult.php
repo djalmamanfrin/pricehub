@@ -6,7 +6,7 @@ readonly class ProductMatchResult
 {
     public function __construct(
         public int $productId,
-        public int $score,
+        public float $score,
         public array $breakdown
     ) {}
 
