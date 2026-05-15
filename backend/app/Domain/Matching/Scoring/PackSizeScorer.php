@@ -9,7 +9,7 @@ class PackSizeScorer extends AbstractScorer
 {
     public function apply(ParsedInput $input, Product $product): self
     {
-        if (is_null($input->packSizeId)) {
+        if (is_null($input->packSize)) {
             $this->setValue(0);
             $this->setRule('pack_size_unknown');
 
