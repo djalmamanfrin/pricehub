@@ -12,13 +12,12 @@ function product(
     ?int $baseUnitId = null,
     ?int $packSize = null,
     ?int $quantity = null,
-    array $attributes = [],
 ): Product {
 
     $name ??= 'Produto Teste';
     $normalized ??= strtolower($name);
 
-    return new Product(array_merge([
+    return new Product([
         'name' => $name,
         'normalized_name' => $normalized,
         'barcode' => $barcode,
@@ -28,5 +27,5 @@ function product(
         'base_unit_id' => $baseUnitId,
         'pack_size' => $packSize,
         'quantity' => $quantity,
-    ], $attributes));
+    ]);
 }
