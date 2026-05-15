@@ -6,7 +6,6 @@ use App\Domain\Matching\Scoring\TokenScorer;
 
 beforeEach(function () {
     mockSynonyms();
-
     $this->scorer = new TokenScorer();
 });
 
@@ -22,7 +21,7 @@ it('scores token similarity correctly',
 
         $this->scorer->apply(
             parsed($input),
-            product($product)
+            product(name: $product)
         );
 
         $score = $this->scorer->getValue();
