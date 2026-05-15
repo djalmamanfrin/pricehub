@@ -15,7 +15,7 @@ class PackSizeScorer extends AbstractScorer
 
             return $this;
         }
-        if ($input->packSizeId === $product->pack_size_id) {
+        if ($input->packSize === $product->pack_size) {
             $this->setValue(20);
             $this->setRule('pack_size_match');
 
