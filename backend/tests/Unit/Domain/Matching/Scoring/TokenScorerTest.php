@@ -56,7 +56,7 @@ it('scores token similarity correctly',
     ) {
 
         $this->scorer->apply(
-            parsedName($input),
+            parsed($input),
             product($product)
         );
 
