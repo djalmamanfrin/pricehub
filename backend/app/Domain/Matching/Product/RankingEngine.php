@@ -15,7 +15,7 @@ class RankingEngine
     public function rank(ParsedInput $input, Collection $candidates): ProductMatchResult
     {
         $best = null;
-        $bestScore = 0;
+        $bestScore = PHP_INT_MIN;
         $bestBreakdown = [];
 
         foreach ($candidates as $product) {
