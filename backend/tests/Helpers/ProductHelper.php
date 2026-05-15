@@ -3,6 +3,7 @@
 use App\Models\Product;
 
 function product(
+    int $id = 1,
     ?string $name = null,
     ?string $normalized = null,
     ?string $barcode = null,
@@ -17,7 +18,8 @@ function product(
     $name ??= 'Produto Teste';
     $normalized ??= strtolower($name);
 
-    return new Product([
+    return (new Product())->forceFill([
+        'id' => $id,
         'name' => $name,
         'normalized_name' => $normalized,
         'barcode' => $barcode,
