@@ -5,10 +5,21 @@
       <tool tool_name="Pest">
         <settings>
           <configurations>
-            <local_configuration configuration_file_path="$PROJECT_DIR$/backend/phpunit.xml" executable_path="$PROJECT_DIR$/backend/vendor/pestphp/pest/bin/pest" use_configuration_file="true" />
+            <configuration_by_sdk interpreter_id="cf322ad4-409f-4d34-9f0b-2870324d4b0c" configuration_file_path="/var/www/vendor/autoload.php" executable_path="/var/www/vendor/bin/pest" use_configuration_file="true" />
           </configurations>
         </settings>
       </tool>
     </test_tools>
+  </component>
+  <component name="PhpTestFrameworkVersionCache">
+    <tools_cache>
+      <tool tool_name="PHPUnit">
+        <cache>
+          <versions>
+            <info id="interpreter-cf322ad4-409f-4d34-9f0b-2870324d4b0c" version="12.5.23" />
+          </versions>
+        </cache>
+      </tool>
+    </tools_cache>
   </component>
 </project>
